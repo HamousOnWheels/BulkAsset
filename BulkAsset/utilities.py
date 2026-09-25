@@ -12,6 +12,10 @@ def header_menu_func(self, context):
 
 
 def tag_callback(self, context):
+    global items1
+    items1 = [] 
+    
+    items1.clear()
     tags = {}
     for f in bpy.context.selected_assets:
         for tag in f.metadata.tags:
@@ -21,23 +25,34 @@ def tag_callback(self, context):
     for tag in tags.keys():
         output.append((tag, tag, "", i))
         i += 1
-    return output
+    items1 = output
+    return items1
 
 
-def item_callback(self, context):
+def item_callback(self, context):    
+    global items
+    items = [] 
+    
+    items.clear()
+    
+    
     output = [("", "Catalog", "", 0),
               ("00000000-0000-0000-0000-000000000000", "Unassigned", "", 0)]
 
     if bpy.context.space_data.params.asset_library_reference == "ALL":
         return [("", "Select a catalog other than 'All'", "", 0)]
-
-    directory = context.space_data.params.directory    
-    d = str(directory).split('\'')
-
-    directory = d[1]
-    cat = open(os.path.join(str(directory), "blender_assets.cats.txt"))
+    
+    filepath_bytes = os.fsencode(context.space_data.params.directory)
+    directory = filepath_bytes.decode('utf-8', "replace")
+    
+    # directory = context.space_data.params.directory    
+    # d = str(directory).split('\'')
+    
+    # directory = d[1]
+    cat = open(os.path.join(str(directory), "blender_assets.cats.txt"), encoding='utf-8')
     cats = cat.readlines()
     cat.close()
+    # print(cats)
     
     i = 1
     for line in cats:
@@ -50,18 +65,24 @@ def item_callback(self, context):
         data = line.split(":")
         output.append((data[0], data[1], "", i))
         i += 1
-    return output
+    # print('output:_yn_:',output)
+    items=output
+    return items
 
 
 # Utility Functions
 
 def get_catalog_directory(context):
-    catalog = context.space_data.params.catalog_id
-    directory = context.space_data.params.directory
+    catalog_bytes = os.fsencode(context.space_data.params.catalog_id)
+    catalog = catalog_bytes.decode('utf-8', "replace")
+    
+    filepath_bytes = os.fsencode(context.space_data.params.directory)
+    directory = filepath_bytes.decode('utf-8', "replace")
     if directory == "b''":
         return ""
-    d = str(directory).split('\'')
-    return d[1]
+    # d = str(directory).split('\'')
+    # return d[1]
+    return str(directory)
 
 
 def get_file_path(relative_path, directory):
