@@ -1,6 +1,7 @@
 import bpy
 import os
 from .settings import *
+from .compat import get_preferences
 
 # UI Functions
 
@@ -86,8 +87,10 @@ def get_catalog_directory(context):
 
 
 def get_file_path(relative_path, directory):
-    p = relative_path.split(".blend\\")
-    p[0] = p[0]+".blend"
+    # Handle both forward and backward slashes for cross-platform support
+    sep = "\\" if ".blend\\" in relative_path else "/"
+    p = relative_path.split(".blend" + sep)
+    p[0] = p[0] + ".blend"
     return os.path.join(directory, p[0])
 
 
@@ -105,7 +108,8 @@ def run_command(path, commands):
         expr = "import bpy; "+commandlist + \
             " bpy.ops.wm.save_mainfile(); bpy.ops.wm.quit_blender();"
         list = [bpy.app.binary_path]
-        if bpy.context.preferences.addons[__package__].preferences.background == True:
+        prefs = get_preferences()
+        if prefs and prefs.background == True:
             list.append("-b")
         list.append(path)
         list.append("--python-expr")
